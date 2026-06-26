@@ -1,865 +1,1065 @@
 <!DOCTYPE html>
-<html lang="tl">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hanap Salita - Labanan ni Lapu-Lapu</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Tagalog&family=Baybayin+Deko&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        * {
-            font-family: 'Inter', sans-serif;
-        }
-        .baybayin {
-            font-family: 'Baybayin Deko', 'Noto Sans Tagalog', sans-serif;
-            font-feature-settings: "calt" 1, "liga" 1;
-            line-height: 1.6;
-            text-rendering: optimizeLegibility;
-        }
-        .grid-cell {
-            transition: all 0.15s ease;
-            user-select: none;
-            -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .grid-cell.selected {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            color: #78350f;
-            transform: scale(1.05);
-            z-index: 10;
-        }
-        .grid-cell.found {
-            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
-            color: #064e3b;
-            animation: pulse-found 0.5s ease;
-        }
-        .grid-cell.ai-found {
-            background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
-            color: #1e1b4b;
-            animation: pulse-found 0.5s ease;
-        }
-        .grid-cell.temp-match {
-            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-            color: #1e3a8a;
-        }
-        @keyframes pulse-found {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-        }
-        .word-item.found {
-            text-decoration: line-through;
-            opacity: 0.5;
-            color: #10b981;
-        }
-        .word-item.ai-found {
-            text-decoration: line-through;
-            opacity: 0.5;
-            color: #8b5cf6;
-        }
-        .medal {
-            animation: medal-shine 2s infinite;
-        }
-        @keyframes medal-shine {
-            0%, 100% { filter: brightness(1); }
-            50% { filter: brightness(1.3); }
-        }
-        .confetti {
-            position: fixed;
-            width: 10px;
-            height: 10px;
-            background: #fbbf24;
-            position: absolute;
-            animation: confetti-fall 3s linear forwards;
-        }
-        @keyframes confetti-fall {
-            to {
-                transform: translateY(100vh) rotate(360deg);
-                opacity: 0;
-            }
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        .timer-warning {
-            animation: timer-pulse 1s infinite;
-            color: #f87171 !important;
-        }
-        @keyframes timer-pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bakunawa Baybayin Rush - Salita to Baybayin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Tagalog&family=JetBrains+Mono:wght@400;600;700&display=swap');
+  
+  :root {
+    --orange-50: #fff7ed;
+    --orange-500: #f97316;
+    --orange-600: #ea580c;
+    --orange-700: #c2410c;
+    --green-500: #22c55e;
+    --red-500: #ef4444;
+    --gray-900: #111827;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    color: white;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .baybayin {
+    font-family: 'Noto Sans Tagalog', sans-serif;
+    font-size: 28px;
+    line-height: 1;
+  }
+
+  .game-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1rem;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .track {
+    position: relative;
+    height: 140px;
+    background: linear-gradient(180deg, rgba(249,115,22,0.1) 0%, rgba(249,115,22,0.05) 100%);
+    border: 2px solid rgba(249,115,22,0.3);
+    border-radius: 16px;
+    margin-top: 60px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(249,115,22,0.15), inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+
+  .track-line {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: repeating-linear-gradient(
+      90deg,
+      rgba(249,115,22,0.3) 0px,
+      rgba(249,115,22,0.3) 10px,
+      transparent 10px,
+      transparent 20px
+    );
+  }
+
+  .target {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    display: flex;
+    gap: 4px;
+    padding: 12px 20px;
+    background: rgba(17,24,39,0.9);
+    border: 2px solid var(--orange-500);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(249,115,22,0.4), 0 0 0 1px rgba(249,115,22,0.2) inset;
+    transition: transform 0.2s ease;
+    will-change: left;
+    z-index: 10;
+  }
+
+  .target-letter {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #ff6b35;
+    font-size: 28px;
+    text-shadow: 0 0 10px rgba(255,107,53,0.5);
+    font-family: 'Noto Sans Tagalog', sans-serif;
+    line-height: 1;
+  }
+
+  .target-letter.correct {
+    color: var(--green-500);
+    text-shadow: 0 0 15px rgba(34,197,94,0.8);
+    transform: scale(1.15);
+  }
+
+  .target-letter.glow {
+    animation: pulse-glow 0.5s ease;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.25); filter: brightness(1.5); }
+  }
+
+  .target.succeed {
+    animation: success-pop 0.6s ease forwards;
+  }
+
+  @keyframes success-pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1) rotate(2deg); }
+    100% { transform: scale(0); opacity: 0; }
+  }
+
+  .finish-line {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: repeating-linear-gradient(
+      0deg,
+      var(--red-500) 0px,
+      var(--red-500) 10px,
+      white 10px,
+      white 20px
+    );
+    box-shadow: 0 0 20px rgba(239,68,68,0.6);
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-card {
+    background: rgba(17,24,39,0.6);
+    border: 1px solid rgba(249,115,22,0.2);
+    border-radius: 12px;
+    padding: 0.75rem;
+    text-align: center;
+    backdrop-filter: blur(10px);
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--orange-500);
+  }
+
+  .lives {
+    display: flex;
+    gap: 0.25rem;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .heart {
+    font-size: 1.25rem;
+    transition: all 0.3s ease;
+  }
+
+  .heart.lost {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+
+  .timer-bar-container {
+    width: 100%;
+    height: 8px;
+    background: rgba(17,24,39,0.6);
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(249,115,22,0.2);
+  }
+
+  .timer-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--orange-600) 0%, var(--orange-500) 100%);
+    width: 100%;
+    transition: width 0.1s linear;
+    box-shadow: 0 0 10px rgba(249,115,22,0.5);
+  }
+
+  .input-section {
+    margin-top: 2rem;
+  }
+
+  .prompt-word {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .prompt-label {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+  }
+
+  .prompt-text {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--orange-500);
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 20px rgba(249,115,22,0.4);
+  }
+
+  .input-wrapper {
+    position: relative;
+  }
+
+  .input-box {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    font-size: 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    text-align: center;
+    background: rgba(17,24,39,0.8);
+    border: 2px solid rgba(249,115,22,0.4);
+    border-radius: 12px;
+    color: white;
+    outline: none;
+    transition: all 0.2s ease;
+    letter-spacing: 0.15em;
+    font-weight: 600;
+  }
+
+  .input-box:focus {
+    border-color: var(--orange-500);
+    box-shadow: 0 0 0 3px rgba(249,115,22,0.2), 0 8px 24px rgba(249,115,22,0.15);
+    transform: translateY(-1px);
+  }
+
+  .input-box.shake {
+    animation: shake 0.4s ease;
+    border-color: var(--red-500);
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.3);
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+  }
+
+  .baybayin-preview {
+    min-height: 48px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+    background: rgba(17,24,39,0.6);
+    border: 2px solid rgba(249,115,22,0.2);
+    border-radius: 12px;
+    font-family: 'Noto Sans Tagalog', sans-serif;
+    font-size: 1.75rem;
+    text-align: center;
+    color: #fbbf24;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    word-break: break-word;
+  }
+
+  .baybayin-preview:empty::before {
+    content: 'Tap Baybayin letters...';
+    color: #4b5563;
+    font-size: 0.875rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .btn {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--orange-500) 0%, var(--orange-600) 100%);
+    color: white;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(249,115,22,0.4);
+  }
+
+  .btn-primary:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-category {
+    background: rgba(17,24,39,0.8);
+    border: 2px solid rgba(249,115,22,0.4);
+    color: white;
+    padding: 1.25rem;
+    text-align: left;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .btn-category:hover {
+    border-color: var(--orange-500);
+    background: rgba(249,115,22,0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(249,115,22,0.3);
+  }
+
+  .btn-category-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--orange-500);
+    margin-bottom: 0.25rem;
+  }
+
+  .btn-category-desc {
+    font-size: 0.875rem;
+    color: #9ca3af;
+  }
+
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 1rem;
+    animation: fade-in 0.3s ease;
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .modal-content {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 2px solid rgba(249,115,22,0.3);
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    animation: slide-up 0.4s ease;
+  }
+
+  @keyframes slide-up {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--orange-500);
+  }
+
+  .modal-text {
+    color: #d1d5db;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+  }
+
+  .hint-text {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-align: center;
+    margin-top: 0.5rem;
+  }
+
+  .baybayin-keyboard {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    max-width: 100%;
+  }
+
+  .baybayin-key {
+    width: 50px;
+    height: 50px;
+    background: rgba(17,24,39,0.8);
+    border: 2px solid rgba(249,115,22,0.3);
+    border-radius: 10px;
+    color: #fbbf24;
+    font-family: 'Noto Sans Tagalog', sans-serif;
+    font-size: 24px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  .baybayin-key:active {
+    transform: scale(0.92);
+    background: rgba(249,115,22,0.3);
+    border-color: var(--orange-500);
+    box-shadow: 0 0 12px rgba(249,115,22,0.5);
+  }
+
+  .baybayin-key.backspace {
+    width: 70px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.25rem;
+    color: #ef4444;
+  }
+
+  .category-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 1rem;
+  }
+
+  .game-screen {
+    display: none;
+  }
+
+  .progress-indicator {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: rgba(249,115,22,0.2);
+    border: 1px solid rgba(249,115,22,0.4);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    color: var(--orange-500);
+    font-weight: 600;
+    margin-left: 0.5rem;
+  }
+
+  @media (hover: hover) {
+    .baybayin-key:hover {
+      background: rgba(249,115,22,0.2);
+      border-color: var(--orange-500);
+      transform: translateY(-2px);
+    }
+  }
+
+  @media (max-width: 390px) {
+    .game-container {
+      padding: 0.75rem;
+    }
+    
+    .prompt-text {
+      font-size: 1.5rem;
+    }
+    
+    .baybayin {
+      font-size: 24px;
+    }
+    
+    .stat-value {
+      font-size: 1.25rem;
+    }
+
+    .track {
+      margin-top: 40px;
+      height: 130px;
+    }
+
+    .baybayin-key {
+      width: 46px;
+      height: 46px;
+      font-size: 22px;
+    }
+
+    .baybayin-key.backspace {
+      width: 64px;
+    }
+
+    .btn-category-title {
+      font-size: 1.25rem;
+    }
+  }
+</style>
 </head>
-<body class="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 min-h-screen">
-    <!-- Header -->
-    <header class="bg-gradient-to-r from-amber-900 via-orange-800 to-red-900 text-white shadow-2xl sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4">
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-khanda text-3xl sm:text-4xl text-amber-300 medal"></i>
-                    <div>
-                        <h1 class="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight">Hanap Salita</h1>
-                        <p class="text-xs sm:text-sm text-amber-200">Labanan ni Lapu-Lapu</p>
-                    </div>
-                <div class="flex items-center gap-3 sm:gap-6 text-sm sm:text-base">
-                    <div id="turnTimer" class="text-center hidden">
-                        <div class="text-amber-200 text-xs">Turn Mo</div>
-                        <div id="turnTimeDisplay" class="font-bold text-lg sm:text-xl text-yellow-300">01:00</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-amber-200 text-xs">Iskor Mo</div>
-                        <div id="playerScore" class="font-bold text-lg sm:text-xl text-emerald-300">0</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-amber-200 text-xs">AI Iskor</div>
-                        <div id="aiScore" class="font-bold text-lg sm:text-xl text-purple-300">0</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<body>
+<div class="game-container">
+  <!-- Category Selection Screen -->
+  <div class="category-screen" id="categoryScreen">
+    <div class="text-center mb-8">
+      <h1 class="text-4xl md:text-5xl font-bold mb-3" style="background: linear-gradient(135deg, #f97316 0%, #fb923c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        Bakunawa Baybayin Rush
+      </h1>
+      <p class="text-gray-400 text-sm">Salita to Baybayin • Pumili ng Antas</p>
+    </div>
+    
+    <div class="max-w-md mx-auto w-full">
+      <button class="btn btn-category" data-difficulty="easy">
+        <div class="btn-category-title">EASY</div>
+        <div class="btn-category-desc">20 tanong • 2-3 pantig</div>
+      </button>
+      
+      <button class="btn btn-category" data-difficulty="medium">
+        <div class="btn-category-title">MEDIUM</div>
+        <div class="btn-category-desc">20 tanong • 3-5 pantig</div>
+      </button>
+      
+      <button class="btn btn-category" data-difficulty="hard">
+        <div class="btn-category-title">HARD</div>
+        <div class="btn-category-desc">50 tanong • 4-7 pantig</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div class="game-screen" id="gameScreen">
+    <header class="mb-6">
+      <h1 class="text-3xl md:text-4xl font-bold text-center mb-2" style="background: linear-gradient(135deg, #f97316 0%, #fb923c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        Bakunawa Baybayin Rush
+      </h1>
+      <p class="text-center text-gray-400 text-sm">
+        Salita to Baybayin
+        <span class="progress-indicator" id="progressIndicator">1/20</span>
+      </p>
     </header>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-3 sm:px-6 py-6 sm:py-8">
-        <!-- Start Screen -->
-        <div id="startScreen" class="max-w-2xl mx-auto">
-            <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 border-4 border-amber-600">
-                <div class="text-center mb-6">
-                    <i class="fas fa-shield-halved text-6xl text-amber-600 mb-4"></i>
-                    <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Handa ka na ba, Mandirigma?</h2>
-                    <p class="text-gray-600 text-sm sm:text-base">Hanapin ang mga salitang Baybayin at talunin ang AI kalaban!</p>
-                </div>
-
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Pangalan Mo</label>
-                        <input type="text" id="playerName" placeholder="Ilagay ang pangalan..." 
-                            class="w-full px-4 py-3 border-2 border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Dami ng Salita</label>
-                        <div class="grid grid-cols-3 gap-3">
-                            <button data-words="15" class="word-count-btn bg-amber-100 hover:bg-amber-200 border-2 border-amber-400 text-amber-900 font-semibold py-3 rounded-lg transition">15 Salita</button>
-                            <button data-words="20" class="word-count-btn bg-amber-100 hover:bg-amber-200 border-2 border-amber-400 text-amber-900 font-semibold py-3 rounded-lg transition">20 Salita</button>
-                            <button data-words="30" class="word-count-btn bg-amber-600 hover:bg-amber-700 border-2 border-amber-600 text-white font-semibold py-3 rounded-lg transition">30 Salita</button>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">Laban sa AI?</label>
-                        <div class="flex items-center gap-4">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" id="vsAiToggle" checked class="w-5 h-5 text-amber-600 rounded focus:ring-amber-500">
-                                <span class="text-gray-700 font-medium">Oo, labanan ang AI!</span>
-                            </label>
-                        </div>
-                        <div id="difficultySelect" class="mt-3">
-                            <select id="aiDifficulty" class="w-full px-4 py-2 border-2 border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none">
-                                <option value="easy">Madali - Mabagal mag-isip</option>
-                                <option value="medium" selected>Katamtaman - Normal</option>
-                                <option value="hard">Mahirap - Mabilis!</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <button id="startGameBtn" class="w-full bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700 text-white font-bold py-4 rounded-xl shadow-lg transform hover:scale-105 transition text-lg">
-                        <i class="fas fa-play-circle mr-2"></i>Simulan ang Laban!
-                    </button>
-                </div>
-            </div>
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Score</div>
+        <div class="stat-value" id="score">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Lives</div>
+        <div class="lives" id="lives">
+          <span class="heart">❤️</span>
+          <span class="heart">❤️</span>
+          <span class="heart">❤️</span>
         </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Time</div>
+        <div class="stat-value" id="time">60</div>
+      </div>
+    </div>
 
-        <!-- Game Screen -->
-        <div id="gameScreen" class="hidden">
-            <div class="grid lg:grid-cols-3 gap-6">
-                <!-- Game Grid -->
-                <div class="lg:col-span-2">
-                    <div class="bg-white rounded-2xl shadow-2xl p-3 sm:p-6 border-4 border-amber-600">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg sm:text-xl font-bold text-gray-800 flex items-center gap-2">
-                                <i class="fas fa-th text-amber-600"></i>
-                                Baybayin Grid
-                            </h3>
-                            <button id="resetGameBtn" class="text-sm bg-gray-200 hover:bg-gray-300 px-3 py-2 rounded-lg font-semibold transition">
-                                <i class="fas fa-redo mr-1"></i>Ulit
-                            </button>
-                        </div>
-                        <div id="gameGrid" class="grid gap-1 select-none touch-none"></div>
-                    </div>
-                </div>
+    <div class="timer-bar-container">
+      <div class="timer-bar" id="timerBar"></div>
+    </div>
 
-                <!-- Word List Sidebar -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 border-4 border-amber-600 sticky top-24">
-                        <h3 class="text-lg sm:text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                            <i class="fas fa-list text-amber-600"></i>
-                            Hanapin ang mga Salita
-                        </h3>
-                        <div id="wordList" class="space-y-2 max-h-[500px] overflow-y-auto scrollbar-hide"></div>
-                        
-                        <div class="mt-6 pt-4 border-t-2 border-amber-200">
-                            <div class="text-sm text-gray-600 mb-2">Progress ng Laban:</div>
-                            <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-                                <div id="progressBar" class="bg-gradient-to-r from-emerald-500 to-emerald-600 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
-                            </div>
-                            <div id="progressText" class="text-center text-sm font-semibold text-gray-700 mt-2">0 / 0 Nasakop</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="track">
+      <div class="track-line"></div>
+      <div class="finish-line"></div>
+      <div class="target" id="target">
+        <!-- Dynamic Baybayin letters here -->
+      </div>
+    </div>
 
-        <!-- Victory Screen -->
-        <div id="victoryScreen" class="hidden max-w-2xl mx-auto">
-            <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 border-4 border-amber-600 text-center">
-                <div id="medalDisplay" class="mb-6">
-                    <i class="fas fa-medal text-8xl medal"></i>
-                </div>
-                <h2 id="victoryTitle" class="text-3xl sm:text-4xl font-bold text-gray-800 mb-2"></h2>
-                <p id="victoryMessage" class="text-lg text-gray-600 mb-6"></p>
-                
-                <div class="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-6 mb-6">
-                    <div class="grid grid-cols-2 gap-4 text-center">
-                        <div>
-                            <div class="text-3xl font-bold text-emerald-600" id="finalPlayerScore">0</div>
-                            <div class="text-sm text-gray-600">Salita Mo</div>
-                        </div>
-                        <div id="finalAiScoreContainer">
-                            <div class="text-3xl font-bold text-purple-600" id="finalAiScore">0</div>
-                            <div class="text-sm text-gray-600">Salita ng AI</div>
-                        </div>
-                    </div>
-                </div>
+    <div class="input-section">
+      <div class="prompt-word">
+        <div class="prompt-label">Type this word:</div>
+        <div class="prompt-text" id="promptText">ASO</div>
+      </div>
+      <div class="input-wrapper">
+        <div class="baybayin-preview" id="baybayinPreview"></div>
+        <input 
+          type="text" 
+          class="input-box" 
+          id="inputBox" 
+          placeholder="I Type ang Baybayin..."
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          disabled
+        >
+      </div>
+      <div class="baybayin-keyboard" id="baybayinKeyboard">
+        <button class="baybayin-key" data-char="ᜀ">ᜀ</button>
+        <button class="baybayin-key" data-char="ᜁ">ᜁ</button>
+        <button class="baybayin-key" data-char="ᜂ">ᜂ</button>
+        <button class="baybayin-key" data-char="ᜊ">ᜊ</button>
+        <button class="baybayin-key" data-char="ᜃ">ᜃ</button>
+        <button class="baybayin-key" data-char="ᜇ">ᜇ</button>
+        <button class="baybayin-key" data-char="ᜄ">ᜄ</button>
+        <button class="baybayin-key" data-char="ᜑ">ᜑ</button>
+        <button class="baybayin-key" data-char="ᜎ">ᜎ</button>
+        <button class="baybayin-key" data-char="ᜋ">ᜋ</button>
+        <button class="baybayin-key" data-char="ᜈ">ᜈ</button>
+        <button class="baybayin-key" data-char="ᜅ">ᜅ</button>
+        <button class="baybayin-key" data-char="ᜉ">ᜉ</button>
+        <button class="baybayin-key" data-char="ᜐ">ᜐ</button>
+        <button class="baybayin-key" data-char="ᜆ">ᜆ</button>
+        <button class="baybayin-key" data-char="ᜏ">ᜏ</button>
+        <button class="baybayin-key" data-char="ᜌ">ᜌ</button>
+        <button class="baybayin-key" data-char="ᜒ">ᜒ</button>
+        <button class="baybayin-key" data-char="ᜓ">ᜓ</button>
+        <button class="baybayin-key" data-char="᜔">᜔</button>
+        <button class="baybayin-key backspace" data-action="backspace">⌫</button>
+      </div>
+      <div class="hint-text">Tap Baybayin to type • Match exact spelling with kudlit/virama</div>
+    </div>
 
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <button id="playAgainBtn" class="flex-1 bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700 text-white font-bold py-4 rounded-xl shadow-lg transform hover:scale-105 transition">
-                        <i class="fas fa-redo mr-2"></i>Labanan Muli
-                    </button>
-                    <button id="changeDiffBtn" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-4 rounded-xl shadow-lg transition">
-                        <i class="fas fa-cog mr-2"></i>Baguhin
-                    </button>
-                </div>
-            </div>
-        </div>
-    </main>
+    <div class="mt-auto pt-6">
+      <button class="btn btn-primary w-full" id="quitBtn">Back to Menu</button>
+    </div>
+  </div>
+</div>
 
-    <!-- Footer -->
-    <footer class="bg-gradient-to-r from-amber-900 via-orange-800 to-red-900 text-white py-6 mt-12">
-        <div class="max-w-7xl mx-auto px-4 text-center text-sm">
-            <p class="text-amber-200">Gawa para sa mga mandirigma ng wika at kultura 🛡️</p>
-            <p class="text-amber-300 mt-1">Hanap Salita - Labanan ni Lapu-Lapu @ericksonkaiser2026</p>
-        </div>
-    </footer>
+<div class="modal" id="modal" style="display: none;">
+  <div class="modal-content">
+    <h2 class="modal-title" id="modalTitle">Game Over</h2>
+    <p class="modal-text" id="modalText">Your score: 0</p>
+    <button class="btn btn-primary w-full" id="retryBtn">Back to Menu</button>
+  </div>
+</div>
 
 <script>
-const WORD_DATABASE = [
-    { tagalog: 'KAMAY', baybayin: 'ᜃᜋᜌ᜔' },
-    { tagalog: 'DAGAT', baybayin: 'ᜇᜄᜆ᜔' },
-    { tagalog: 'TUBIG', baybayin: 'ᜆᜓᜊᜒᜄ᜔' },
-    { tagalog: 'LANGIT', baybayin: 'ᜎᜅᜒᜆ᜔' },
-    { tagalog: 'ARAW', baybayin: 'ᜀᜇᜏ᜔' },
-    { tagalog: 'BUWAN', baybayin: 'ᜊᜓᜏᜈ᜔' },
-    { tagalog: 'BITUIN', baybayin: 'ᜊᜒᜆᜓᜁᜈ᜔' },
-    { tagalog: 'BAYANI', baybayin: 'ᜊᜌᜈᜒ' },
-    { tagalog: 'DUGO', baybayin: 'ᜇᜓᜄᜓᜈ᜔' },
-    { tagalog: 'PUSO', baybayin: 'ᜉᜓᜐᜓᜈ᜔' },
-    { tagalog: 'LUPA', baybayin: 'ᜎᜓᜉᜈ᜔' },
-    { tagalog: 'AHAS', baybayin: 'ᜀᜑᜐ᜔' },
-    { tagalog: 'ISDA', baybayin: 'ᜁᜐᜇᜈ' },
-    { tagalog: 'IBON', baybayin: 'ᜁᜊᜓᜈ᜔' },
-    { tagalog: 'PUNO', baybayin: 'ᜉᜓᜈᜓᜈ᜔' },
-    { tagalog: 'BUNDOK', baybayin: 'ᜊᜓᜈᜇᜓᜃ᜔' },
-    { tagalog: 'ILOG', baybayin: 'ᜁᜎᜓᜄ᜔' },
-    { tagalog: 'HANGIN', baybayin: 'ᜑᜅᜒᜈ᜔' },
-    { tagalog: 'ULAN', baybayin: 'ᜂᜎᜈ᜔' },
-    { tagalog: 'INIT', baybayin: 'ᜁᜈᜒᜆ᜔' },
-    { tagalog: 'LAMIG', baybayin: 'ᜎᜋᜒᜄ᜔' },
-    { tagalog: 'LAKAS', baybayin: 'ᜎᜃᜐ᜔' },
-    { tagalog: 'TAPANG', baybayin: 'ᜆᜉᜅ᜔' },
-    { tagalog: 'DANGAL', baybayin: 'ᜇᜅᜎ᜔' },
-    { tagalog: 'LAKBAY', baybayin: 'ᜎᜃᜊᜌ᜔' },
-    { tagalog: 'MANDIRIGMA', baybayin: 'ᜋᜈᜇᜒᜇᜒᜄᜋᜈ᜔' },
-    { tagalog: 'SANDATA', baybayin: 'ᜐᜈᜇᜆᜈ᜔' },
-    { tagalog: 'BALUTI', baybayin: 'ᜊᜎᜓᜆᜒ' },
-    { tagalog: 'ESPADA', baybayin: 'ᜁᜐᜉᜇ' },
-    { tagalog: 'KALASAG', baybayin: 'ᜃᜎᜐᜄ᜔' },
-    { tagalog: 'LABAN', baybayin: 'ᜎᜊᜈ᜔' },
-    { tagalog: 'TAGUMPAY', baybayin: 'ᜆᜄᜓᜋᜉᜌ᜔' },
-    { tagalog: 'KALAYAAN', baybayin: 'ᜃᜎᜌᜀᜈ᜔' },
-    { tagalog: 'BAYAN', baybayin: 'ᜊᜌᜈ᜔' },
-    { tagalog: 'LAHI', baybayin: 'ᜎᜑᜒ' },
-    { tagalog: 'PAGASA', baybayin: 'ᜉᜄᜐ' },
-    { tagalog: 'TIWALA', baybayin: 'ᜆᜒᜏᜎᜈ᜔' },
-    { tagalog: 'DAKILA', baybayin: 'ᜇᜃᜒᜎᜈ᜔' },
-    { tagalog: 'BANTOG', baybayin: 'ᜊᜈᜆᜓᜄ᜔' },
-    { tagalog: 'HARANG', baybayin: 'ᜑᜇᜅ᜔' }
-];
+  // Word lists per difficulty
+  const WORD_LISTS = {
+    easy: ['ASO','PUSA','BATA','MATA','KAMA','AMA','INA','ISA','UPO','TAO','BUKO','GABI','ULAP','ILAW','APOY','BATO','LANGIT','DAGAT','LUPA','ISDA'],
+    medium: ['BUKAS','SARADO','MAHAL','GULAY','PRUTAS','BAHAY','KUBO','BINTANA','PINTUAN','HAGDANAN','SILID','KUSINA','KAMAY','PAA','ULO','MUKHA','BUHOK','DAMIT','SAPATOS','KAPATID'],
+    hard: ['MAGANDANG UMAGA','SALAMAT','PAALAM','INUMIN','PAGKAIN','TANGGHALIAN','HAPUNAN','ALMUSAL','NAGLALAKAD','TUMATAKBO','NAKANGITI','PAMILYA','KAIBIGAN','KASINTAHAN','MAGLALABA','MAGLULUTO','UMIIYAK','TUMATAWA','NAGLALARO','NAGBABASA','UMAGA','GABI','HAPON','BUKAS','KAHAPON','MAMAYA','NGAYON','DOON','DITO','DIYAN','KANINA','PAROON','PAKAININ','UMINOM','KUMAIN','MATULOG','GUMISING','MAGLARO','MAGBASA','MAGSULAT','MAGLINIP','LUMANGOY','UMAWIT','SUMAYAW','MAGDASAL','MAGTRABAHO','ESTUDYANTE','GURO','PAARALAN']
+  };
 
-// FIX: Filler characters now include complete syllables with kudlit/virama
-const BAYBAYIN_FILLERS = [
-    // Base characters
-    'ᜀ', 'ᜊ', 'ᜃ', 'ᜇ', 'ᜁ', 'ᜄ', 'ᜑ', 'ᜎ', 'ᜋ', 'ᜈ', 'ᜅ', 'ᜉ', 'ᜐ', 'ᜆ',
-    // With kudlit i/e: ᜒ
-    'ᜊᜒ', 'ᜃᜒ', 'ᜇᜒ', 'ᜄᜒ', 'ᜑᜒ', 'ᜎᜒ', 'ᜋᜒ', 'ᜈᜒ', 'ᜅᜒ', 'ᜉᜒ', 'ᜐᜒ', 'ᜆᜒ',
-    // With kudlit o/u: ᜓ
-    'ᜊᜓ', 'ᜃᜓ', 'ᜇᜓ', 'ᜄᜓ', 'ᜑᜓ', 'ᜎᜓ', 'ᜋᜓ', 'ᜈᜓ', 'ᜅᜓ', 'ᜉᜓ', 'ᜐᜓ', 'ᜆᜓ',
-    // With virama: ᜔
-    'ᜊ᜔', 'ᜃ᜔', 'ᜇ᜔', 'ᜄ᜔', 'ᜑ᜔', 'ᜎ᜔', 'ᜋ᜔', 'ᜈ᜔', 'ᜅ᜔', 'ᜉ᜔', 'ᜐ᜔'
-];
+  // Fixed Baybayin mapping with correct virama/kudlit - EXACT MATCH REQUIRED
+  const BAYBAYIN_DICT = {
+    'ASO': 'ᜀᜐᜓ',
+    'PUSA': 'ᜉᜓᜐ',
+    'BATA': 'ᜊᜆ',
+    'MATA': 'ᜋᜆ',
+    'KAMA': 'ᜃᜋ',
+    'AMA': 'ᜀᜋ',
+    'INA': 'ᜁᜈ',
+    'ISA': 'ᜁᜐ',
+    'UPO': 'ᜂᜉᜓ',
+    'TAO': 'ᜆᜂ',
+    'BUKO': 'ᜊᜓᜃᜓ',
+    'GABI': 'ᜄᜊᜒ',
+    'ULAP': 'ᜂᜎᜉ᜔',
+    'ILAW': 'ᜁᜎᜏ᜔',
+    'APOY': 'ᜀᜉᜓᜌ᜔',
+    'BATO': 'ᜊᜆᜓ',
+    'LANGIT': 'ᜎᜅᜒᜆ᜔',
+    'DAGAT': 'ᜇᜄᜆ᜔',
+    'LUPA': 'ᜎᜓᜉ',
+    'ISDA': 'ᜁᜐ᜔ᜇ',
+    'BUKAS': 'ᜊᜓᜃᜐ᜔',
+    'SARADO': 'ᜐᜇᜇᜓ',
+    'MAHAL': 'ᜋᜑᜎ᜔',
+    'GULAY': 'ᜄᜓᜎᜌ᜔',
+    'PRUTAS': 'ᜉ᜔ᜇᜓᜆᜐ᜔',
+    'BAHAY': 'ᜊᜑᜌ᜔',
+    'KUBO': 'ᜃᜓᜊᜓ',
+    'BINTANA': 'ᜊᜒᜈ᜔ᜆᜈ',
+    'PINTUAN': 'ᜉᜒᜈ᜔ᜆᜓᜀᜈ᜔',
+    'HAGDANAN': 'ᜑᜄ᜔ᜇᜈ᜔',
+    'SILID': 'ᜐᜒᜎᜒᜇ᜔',
+    'KUSINA': 'ᜃᜓᜐᜒᜈ',
+    'KAMAY': 'ᜃᜋᜌ᜔',
+    'PAA': 'ᜉᜀ',
+    'ULO': 'ᜂᜎᜓ',
+    'MUKHA': 'ᜋᜓᜃ᜔ᜑ',
+    'BUHOK': 'ᜊᜓᜑᜓᜃ᜔',
+    'DAMIT': 'ᜇᜋᜒᜆ᜔',
+    'SAPATOS': 'ᜐᜉᜆᜓᜐ᜔',
+    'KAPATID': 'ᜃᜉᜆᜒᜇ᜔'
+  };
 
-let gameState = {
-    gridSize: 18,
-    grid: [],
-    words: [],
-    foundWords: new Set(),
-    aiFoundWords: new Set(),
-    selectedCells: [],
-    isSelecting: false,
-    startCell: null,
-    playerScore: 0,
-    aiScore: 0,
-    wordCount: 30,
-    vsAi: true,
-    aiDifficulty: 'medium',
-    playerName: 'Mandirigma',
-    gameActive: false,
-    currentTurn: 'player',
-    turnTimeLeft: 60,
-    turnTimer: null,
-    aiMoveTimer: null
-};
+  const GAME_DURATION = 60000; // 60 seconds
+  const MAX_LIVES = 3;
+  
+  let gameState = 'idle';
+  let difficulty = null;
+  let wordList = [];
+  let currentWordIndex = 0;
+  let totalQuestions = 0;
+  let currentWord = '';
+  let currentBaybayinString = '';
+  let currentBaybayinChars = [];
+  let score = 0;
+  let lives = MAX_LIVES;
+  let currentInput = '';
+  let startTime = 0;
+  let animationFrame = null;
+  let trackWidth = 0;
 
-const GRID_DIRECTIONS = [
-    [0, 1], [1, 0], [1, 1], [-1, 1],
-    [0, -1], [-1, 0], [-1, -1], [1, -1]
-];
+  const categoryScreen = document.getElementById('categoryScreen');
+  const gameScreen = document.getElementById('gameScreen');
+  const target = document.getElementById('target');
+  const inputBox = document.getElementById('inputBox');
+  const baybayinPreview = document.getElementById('baybayinPreview');
+  const scoreEl = document.getElementById('score');
+  const livesEl = document.getElementById('lives');
+  const timeEl = document.getElementById('time');
+  const timerBar = document.getElementById('timerBar');
+  const promptText = document.getElementById('promptText');
+  const progressIndicator = document.getElementById('progressIndicator');
+  const quitBtn = document.getElementById('quitBtn');
+  const modal = document.getElementById('modal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalText = document.getElementById('modalText');
+  const retryBtn = document.getElementById('retryBtn');
+  const keyboard = document.getElementById('baybayinKeyboard');
 
-const AI_SETTINGS = {
-    easy: { minDelay: 8000, maxDelay: 15000, accuracy: 0.6 },
-    medium: { minDelay: 4000, maxDelay: 8000, accuracy: 0.8 },
-    hard: { minDelay: 2000, maxDelay: 4000, accuracy: 0.95 }
-};
+  function init() {
+    updateTrackWidth();
+    window.addEventListener('resize', updateTrackWidth);
+    
+    document.querySelectorAll('[data-difficulty]').forEach(btn => {
+      btn.addEventListener('click', () => startGame(btn.dataset.difficulty));
+    });
+    
+    quitBtn.addEventListener('click', quitToMenu);
+    retryBtn.addEventListener('click', quitToMenu);
+    inputBox.addEventListener('input', handleInput);
+    inputBox.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') return;
+      if (gameState !== 'playing') e.preventDefault();
+    });
+    keyboard.addEventListener('click', handleKeyboardTap);
+    keyboard.addEventListener('touchstart', handleKeyboardTap, { passive: false });
+  }
 
-// Utility to split Baybayin string into logical characters (base + diacritics)
-function splitBaybayin(str) {
-    const chars = [];
-    for (let i = 0; i < str.length; i++) {
-        let char = str[i];
-        // Check if next char is a diacritic
-        if (i + 1 < str.length && (str[i + 1] === 'ᜒ' || str[i + 1] === 'ᜓ' || str[i + 1] === '᜔')) {
-            char += str[i + 1];
-            i++;
-        }
-        chars.push(char);
+  function updateTrackWidth() {
+    const track = document.querySelector('.track');
+    if (track && target) {
+      trackWidth = track.offsetWidth - target.offsetWidth - 8;
     }
-    return chars;
-}
+  }
 
-function initGame() {
-    document.querySelectorAll('.word-count-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.word-count-btn').forEach(b => {
-                b.classList.remove('bg-amber-600', 'text-white');
-                b.classList.add('bg-amber-100', 'text-amber-900');
-            });
-            btn.classList.remove('bg-amber-100', 'text-amber-900');
-            btn.classList.add('bg-amber-600', 'text-white');
-            gameState.wordCount = parseInt(btn.dataset.words);
-        });
-    });
+  function toBaybayin(word) {
+    const upperWord = word.replace(/ /g, '');
+    
+    // Use explicit dictionary for known words
+    if (BAYBAYIN_DICT[upperWord]) {
+      const str = BAYBAYIN_DICT[upperWord];
+      return { str, chars: Array.from(str) };
+    }
+    
+    // Fallback: basic syllabic conversion without kudlit for unknown words
+    let result = '';
+    let i = 0;
+    
+    while (i < upperWord.length) {
+      const char = upperWord[i];
+      if (char === 'A') result += 'ᜀ';
+      else if (char === 'E' || char === 'I') result += 'ᜁ';
+      else if (char === 'O' || char === 'U') result += 'ᜂ';
+      else result += 'ᜊ';
+      i++;
+    }
+    
+    return { str: result, chars: Array.from(result) };
+  }
 
-    document.getElementById('vsAiToggle').addEventListener('change', (e) => {
-        gameState.vsAi = e.target.checked;
-        document.getElementById('difficultySelect').style.display = e.target.checked ? 'block' : 'none';
-    });
+  function startGame(diff) {
+    difficulty = diff;
+    wordList = [...WORD_LISTS[diff]];
+    totalQuestions = diff === 'hard' ? 50 : 20;
+    
+    for (let i = wordList.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [wordList[i], wordList[j]] = [wordList[j], wordList[i]];
+    }
+    
+    currentWordIndex = 0;
+    gameState = 'playing';
+    score = 0;
+    lives = MAX_LIVES;
+    
+    categoryScreen.style.display = 'none';
+    gameScreen.style.display = 'block';
+    
+    loadNextWord();
+    updateUI();
+    
+    startTime = Date.now();
+    inputBox.disabled = false;
+    inputBox.focus();
+    gameLoop();
+  }
 
-    document.getElementById('startGameBtn').addEventListener('click', startGame);
-    document.getElementById('resetGameBtn').addEventListener('click', resetGame);
-    document.getElementById('playAgainBtn').addEventListener('click', () => {
-        document.getElementById('victoryScreen').classList.add('hidden');
-        startGame();
+  function loadNextWord() {
+    if (currentWordIndex >= totalQuestions || currentWordIndex >= wordList.length) {
+      endGame(true, 'Completed all questions!');
+      return;
+    }
+    
+    currentWord = wordList[currentWordIndex];
+    const baybayin = toBaybayin(currentWord);
+    currentBaybayinString = baybayin.str;
+    currentBaybayinChars = baybayin.chars;
+    currentInput = '';
+    
+    promptText.textContent = currentWord;
+    inputBox.value = '';
+    inputBox.placeholder = `Type in Baybayin...`;
+    baybayinPreview.textContent = '';
+    
+    target.innerHTML = '';
+    currentBaybayinChars.forEach((char, idx) => {
+      const span = document.createElement('span');
+      span.className = 'target-letter baybayin';
+      span.dataset.index = idx;
+      span.textContent = char;
+      target.appendChild(span);
     });
-    document.getElementById('changeDiffBtn').addEventListener('click', () => {
-        document.getElementById('victoryScreen').classList.add('hidden');
-        document.getElementById('startScreen').classList.remove('hidden');
-    });
-}
+    
+    target.classList.remove('succeed');
+    target.style.left = '0px';
+    target.style.display = 'flex';
+    
+    progressIndicator.textContent = `${currentWordIndex + 1}/${totalQuestions}`;
+    
+    setTimeout(() => {
+      updateTrackWidth();
+    }, 50);
+  }
 
-function startGame() {
-    gameState.playerName = document.getElementById('playerName').value.trim() || 'Mandirigma';
-    gameState.vsAi = document.getElementById('vsAiToggle').checked;
-    gameState.aiDifficulty = document.getElementById('aiDifficulty').value;
+  function resetTarget() {
+    const letters = target.querySelectorAll('.target-letter');
+    letters.forEach(letter => {
+      letter.classList.remove('correct', 'glow');
+    });
+    target.classList.remove('succeed');
+    target.style.left = '0px';
+    currentInput = '';
+    inputBox.value = '';
+    baybayinPreview.textContent = '';
+  }
+
+  function gameLoop() {
+    if (gameState !== 'playing') return;
+
+    const elapsed = Date.now() - startTime;
+    const progress = Math.min(elapsed / GAME_DURATION, 1);
+    const position = progress * trackWidth;
     
-    gameState.foundWords = new Set();
-    gameState.aiFoundWords = new Set();
-    gameState.selectedCells = [];
-    gameState.playerScore = 0;
-    gameState.aiScore = 0;
-    gameState.gameActive = true;
-    gameState.currentTurn = 'player';
-    gameState.turnTimeLeft = 60;
+    target.style.left = position + 'px';
     
-    generateGame();
+    const timeLeft = Math.max(0, Math.ceil((GAME_DURATION - elapsed) / 1000));
+    timeEl.textContent = timeLeft;
+    timerBar.style.width = (100 - progress * 100) + '%';
+
+    if (progress >= 1) {
+      loseLife('Time up!');
+      return;
+    }
+
+    animationFrame = requestAnimationFrame(gameLoop);
+  }
+
+  function handleInput(e) {
+    if (gameState !== 'playing') return;
+
+    const value = e.target.value;
     
-    document.getElementById('startScreen').classList.add('hidden');
-    document.getElementById('victoryScreen').classList.add('hidden');
-    document.getElementById('gameScreen').classList.remove('hidden');
-    
-    // Show/hide turn timer based on AI mode
-    if (gameState.vsAi) {
-        document.getElementById('turnTimer').classList.remove('hidden');
-        startTurnTimer();
+    if (value.length < currentInput.length) {
+      currentInput = value;
+      baybayinPreview.textContent = value;
+      updateLetterStates();
+      return;
+    }
+
+    // Check if the input matches the exact expected Baybayin string prefix
+    if (currentBaybayinString.startsWith(value)) {
+      currentInput = value;
+      baybayinPreview.textContent = value;
+      updateLetterStates();
+      
+      // Check for exact match including virama/kudlit
+      if (value === currentBaybayinString) {
+        successRound();
+      }
     } else {
-        document.getElementById('turnTimer').classList.add('hidden');
+      inputBox.value = currentInput;
+      shakeInput();
+      loseLife('Wrong character!');
     }
+  }
+
+  function handleKeyboardTap(e) {
+    if (gameState !== 'playing') return;
     
-    updateScore();
-}
-
-function generateGame() {
-    // Select random words
-    const shuffled = [...WORD_DATABASE].sort(() => Math.random() - 0.5);
-    gameState.words = shuffled.slice(0, gameState.wordCount);
+    const keyBtn = e.target.closest('.baybayin-key');
+    if (!keyBtn) return;
     
-    // Initialize empty grid
-    const size = gameState.gridSize;
-    gameState.grid = Array(size).fill(null).map(() => Array(size).fill(null));
-    
-    // Place words - FIX: Use complete syllables with kudlit/virama
-    const placedWords = [];
-    for (const wordObj of gameState.words) {
-        const wordChars = splitBaybayin(wordObj.baybayin);
-        let placed = false;
-        let attempts = 0;
-        
-        while (!placed && attempts < 100) {
-            const dir = GRID_DIRECTIONS[Math.floor(Math.random() * GRID_DIRECTIONS.length)];
-            const row = Math.floor(Math.random() * size);
-            const col = Math.floor(Math.random() * size);
-            
-            if (canPlaceWord(wordChars, row, col, dir)) {
-                placeWord(wordChars, row, col, dir, wordObj.baybayin);
-                placed = true;
-                placedWords.push(wordObj);
-            }
-            attempts++;
-        }
-    }
-    
-    // Fill empty cells with random Baybayin including kudlit/virama
-    for (let i = 0; i < size; i++) {
-        for (let j = 0; j < size; j++) {
-            if (!gameState.grid[i][j]) {
-                // NEVER use numbers, dots, or other ASCII
-                gameState.grid[i][j] = {
-                    char: BAYBAYIN_FILLERS[Math.floor(Math.random() * BAYBAYIN_FILLERS.length)],
-                    word: null
-                };
-            }
-        }
-    }
-    
-    renderGrid();
-    renderWordList();
-}
-
-function canPlaceWord(chars, row, col, dir) {
-    const size = gameState.gridSize;
-    for (let i = 0; i < chars.length; i++) {
-        const r = row + dir[0] * i;
-        const c = col + dir[1] * i;
-        if (r < 0 || r >= size || c < 0 || c >= size) return false;
-        if (gameState.grid[r][c] && gameState.grid[r][c].char !== chars[i]) return false;
-    }
-    return true;
-}
-
-function placeWord(chars, row, col, dir, fullWord) {
-    for (let i = 0; i < chars.length; i++) {
-        const r = row + dir[0] * i;
-        const c = col + dir[1] * i;
-        gameState.grid[r][c] = { char: chars[i], word: fullWord };
-    }
-}
-
-function renderGrid() {
-    const gridEl = document.getElementById('gameGrid');
-    const size = gameState.gridSize;
-    gridEl.style.gridTemplateColumns = `repeat(${size}, minmax(0, 1fr))`;
-    gridEl.innerHTML = '';
-    
-    for (let i = 0; i < size; i++) {
-        for (let j = 0; j < size; j++) {
-            const cell = document.createElement('div');
-            cell.className = 'grid-cell baybayin aspect-square flex items-center justify-center text-lg sm:text-xl md:text-2xl font-bold bg-white border border-amber-200 rounded cursor-pointer hover:bg-amber-50';
-            cell.textContent = gameState.grid[i][j].char;
-            cell.dataset.row = i;
-            cell.dataset.col = j;
-            
-            cell.addEventListener('mousedown', startSelection);
-            cell.addEventListener('mouseenter', updateSelection);
-            cell.addEventListener('mouseup', endSelection);
-            cell.addEventListener('touchstart', handleTouchStart, { passive: false });
-            cell.addEventListener('touchmove', handleTouchMove, { passive: false });
-            cell.addEventListener('touchend', endSelection);
-            
-            gridEl.appendChild(cell);
-        }
-    }
-}
-
-function renderWordList() {
-    const listEl = document.getElementById('wordList');
-    listEl.innerHTML = '';
-    
-    gameState.words.forEach(wordObj => {
-        const item = document.createElement('div');
-        item.className = 'word-item flex items-center justify-between p-2 bg-amber-50 rounded-lg border border-amber-200';
-        item.dataset.word = wordObj.baybayin;
-        item.innerHTML = `
-            <div class="flex-1">
-                <div class="text-xs text-gray-600">${wordObj.tagalog}</div>
-                <div class="baybayin text-lg font-bold text-gray-800">${wordObj.baybayin}</div>
-            </div>
-            <i class="fas fa-circle text-gray-300 text-xs"></i>
-        `;
-        listEl.appendChild(item);
-    });
-    
-    updateProgress();
-}
-
-function startSelection(e) {
-    if (!gameState.gameActive) return;
-    if (gameState.vsAi && gameState.currentTurn !== 'player') return;
-    gameState.isSelecting = true;
-    gameState.startCell = { row: parseInt(e.target.dataset.row), col: parseInt(e.target.dataset.col) };
-    gameState.selectedCells = [gameState.startCell];
-    updateCellHighlights();
-}
-
-function updateSelection(e) {
-    if (!gameState.isSelecting || !gameState.startCell) return;
-    if (gameState.vsAi && gameState.currentTurn !== 'player') return;
-    const endCell = { row: parseInt(e.target.dataset.row), col: parseInt(e.target.dataset.col) };
-    gameState.selectedCells = getLineCells(gameState.startCell, endCell);
-    updateCellHighlights();
-}
-
-function endSelection() {
-    if (!gameState.isSelecting) return;
-    if (gameState.vsAi && gameState.currentTurn !== 'player') return;
-    gameState.isSelecting = false;
-    checkSelectedWord();
-    gameState.selectedCells = [];
-    gameState.startCell = null;
-    updateCellHighlights();
-}
-
-function handleTouchStart(e) {
     e.preventDefault();
-    startSelection(e);
-}
-
-function handleTouchMove(e) {
-    e.preventDefault();
-    const touch = e.touches[0];
-    const element = document.elementFromPoint(touch.clientX, touch.clientY);
-    if (element && element.classList.contains('grid-cell')) {
-        updateSelection({ target: element });
-    }
-}
-
-function getLineCells(start, end) {
-    const cells = [];
-    const dRow = end.row - start.row;
-    const dCol = end.col - start.col;
-    const steps = Math.max(Math.abs(dRow), Math.abs(dCol));
     
-    if (steps === 0) return [start];
-    
-    const dirRow = dRow / steps;
-    const dirCol = dCol / steps;
-    
-    // Only allow straight lines and diagonals
-    if (Math.abs(dirRow) > 1 || Math.abs(dirCol) > 1 || (dirRow !== 0 && dirCol !== 0 && Math.abs(dirRow) !== Math.abs(dirCol))) {
-        return [start];
+    if (keyBtn.dataset.action === 'backspace') {
+      handleBackspace();
+      return;
     }
     
-    for (let i = 0; i <= steps; i++) {
-        cells.push({
-            row: start.row + Math.round(dirRow * i),
-            col: start.col + Math.round(dirCol * i)
-        });
-    }
-    return cells;
-}
+    const baybayinChar = keyBtn.dataset.char;
+    if (!baybayinChar) return;
+    
+    handleBaybayinInput(baybayinChar);
+  }
 
-function updateCellHighlights() {
-    document.querySelectorAll('.grid-cell').forEach(cell => {
-        cell.classList.remove('selected', 'temp-match');
+  function handleBaybayinInput(char) {
+    const newInput = currentInput + char;
+    
+    // Check exact prefix match including diacritics
+    if (currentBaybayinString.startsWith(newInput)) {
+      currentInput = newInput;
+      inputBox.value = currentInput;
+      baybayinPreview.textContent = currentInput;
+      updateLetterStates();
+      
+      // Exact string match required
+      if (newInput === currentBaybayinString) {
+        successRound();
+      }
+    } else {
+      shakeInput();
+      loseLife('Wrong character!');
+    }
+  }
+
+  function handleBackspace() {
+    if (currentInput.length === 0) return;
+    
+    currentInput = currentInput.slice(0, -1);
+    inputBox.value = currentInput;
+    baybayinPreview.textContent = currentInput;
+    updateLetterStates();
+  }
+
+  function updateLetterStates() {
+    const letters = target.querySelectorAll('.target-letter');
+    const inputLength = currentInput.length;
+    
+    letters.forEach((letter, idx) => {
+      if (idx < inputLength && currentInput[idx] === currentBaybayinChars[idx]) {
+        if (!letter.classList.contains('correct')) {
+          letter.classList.add('correct', 'glow');
+          setTimeout(() => letter.classList.remove('glow'), 500);
+        }
+      } else {
+        letter.classList.remove('correct');
+      }
     });
+  }
+
+  function successRound() {
+    score += 100;
+    currentWordIndex++;
+    updateUI();
     
-    gameState.selectedCells.forEach(pos => {
-        const cell = document.querySelector(`[data-row="${pos.row}"][data-col="${pos.col}"]`);
-        if (cell && !cell.classList.contains('found') && !cell.classList.contains('ai-found')) {
-            cell.classList.add('selected');
-        }
+    target.classList.add('succeed');
+    inputBox.disabled = true;
+    
+    setTimeout(() => {
+      if (gameState !== 'playing') return;
+      
+      if (currentWordIndex >= totalQuestions) {
+        endGame(true, 'Perfect run!');
+        return;
+      }
+      
+      loadNextWord();
+      inputBox.disabled = false;
+      inputBox.focus();
+    }, 600);
+  }
+
+  function shakeInput() {
+    inputBox.classList.add('shake');
+    setTimeout(() => inputBox.classList.remove('shake'), 400);
+  }
+
+  function loseLife(reason) {
+    lives--;
+    updateUI();
+    
+    if (lives <= 0) {
+      endGame(false, reason);
+    } else {
+      cancelAnimationFrame(animationFrame);
+      startTime = Date.now();
+      resetTarget();
+      inputBox.focus();
+      gameLoop();
+    }
+  }
+
+  function endGame(won, reason = '') {
+    gameState = 'ended';
+    cancelAnimationFrame(animationFrame);
+    inputBox.disabled = true;
+    inputBox.blur();
+    
+    const questionsDone = currentWordIndex;
+    modalTitle.textContent = won ? 'Perfect!' : 'Game Over';
+    modalText.textContent = `${reason} Final Score: ${score} | Questions: ${questionsDone}/${totalQuestions}`;
+    modal.style.display = 'flex';
+  }
+
+  function quitToMenu() {
+    cancelAnimationFrame(animationFrame);
+    modal.style.display = 'none';
+    gameScreen.style.display = 'none';
+    categoryScreen.style.display = 'flex';
+    gameState = 'idle';
+    target.style.left = '0px';
+    timerBar.style.width = '100%';
+    timeEl.textContent = '60';
+    resetTarget();
+  }
+
+  function updateUI() {
+    scoreEl.textContent = score;
+    
+    const hearts = livesEl.querySelectorAll('.heart');
+    hearts.forEach((heart, idx) => {
+      if (idx >= lives) {
+        heart.classList.add('lost');
+      } else {
+        heart.classList.remove('lost');
+      }
     });
-}
+  }
 
-function checkSelectedWord() {
-    const word = gameState.selectedCells.map(pos => gameState.grid[pos.row][pos.col].char).join('');
-    const reverseWord = gameState.selectedCells.map(pos => gameState.grid[pos.row][pos.col].char).reverse().join('');
-    
-    const matchedWord = gameState.words.find(w => 
-        (w.baybayin === word || w.baybayin === reverseWord) && 
-        !gameState.foundWords.has(w.baybayin) && 
-        !gameState.aiFoundWords.has(w.baybayin)
-    );
-    
-    if (matchedWord) {
-        markWordFound(matchedWord.baybayin, 'player');
-        // Reset timer after successful word find in turn-based mode
-        if (gameState.vsAi) {
-            gameState.turnTimeLeft = 60;
-            updateTurnDisplay();
-        }
-    }
-}
-
-function markWordFound(baybayinWord, finder) {
-    if (gameState.foundWords.has(baybayinWord) || gameState.aiFoundWords.has(baybayinWord)) return;
-    
-    if (finder === 'player') {
-        gameState.foundWords.add(baybayinWord);
-        gameState.playerScore++;
-    } else {
-        gameState.aiFoundWords.add(baybayinWord);
-        gameState.aiScore++;
-    }
-    
-    // Mark cells
-    gameState.selectedCells.forEach(pos => {
-        const cell = document.querySelector(`[data-row="${pos.row}"][data-col="${pos.col}"]`);
-        if (cell) {
-            cell.classList.remove('selected');
-            cell.classList.add(finder === 'player' ? 'found' : 'ai-found');
-        }
-    });
-    
-    // Update word list
-    const wordItem = document.querySelector(`[data-word="${baybayinWord}"]`);
-    if (wordItem) {
-        wordItem.classList.add(finder === 'player' ? 'found' : 'ai-found');
-        wordItem.querySelector('i').className = `fas fa-${finder === 'player' ? 'check-circle text-emerald-500' : 'robot text-purple-500'} text-xs`;
-    }
-    
-    updateScore();
-    updateProgress();
-    checkGameEnd();
-}
-
-function updateScore() {
-    document.getElementById('playerScore').textContent = gameState.playerScore;
-    document.getElementById('aiScore').textContent = gameState.aiScore;
-}
-
-function updateProgress() {
-    const total = gameState.words.length;
-    const found = gameState.foundWords.size + gameState.aiFoundWords.size;
-    const percent = (found / total) * 100;
-    
-    document.getElementById('progressBar').style.width = percent + '%';
-    document.getElementById('progressText').textContent = `${found} / ${total} Nasakop`;
-}
-
-function startTurnTimer() {
-    clearInterval(gameState.turnTimer);
-    gameState.turnTimeLeft = 60;
-    updateTurnDisplay();
-    
-    gameState.turnTimer = setInterval(() => {
-        if (!gameState.gameActive) {
-            clearInterval(gameState.turnTimer);
-            return;
-        }
-        
-        gameState.turnTimeLeft--;
-        updateTurnDisplay();
-        
-        if (gameState.turnTimeLeft <= 0) {
-            clearInterval(gameState.turnTimer);
-            if (gameState.currentTurn === 'player') {
-                // Player time's up, AI makes a move
-                triggerAIMove();
-            }
-        }
-    }, 1000);
-}
-
-function updateTurnDisplay() {
-    const minutes = Math.floor(gameState.turnTimeLeft / 60);
-    const seconds = gameState.turnTimeLeft % 60;
-    const display = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    const turnDisplay = document.getElementById('turnTimeDisplay');
-    turnDisplay.textContent = display;
-    
-    if (gameState.turnTimeLeft <= 10) {
-        turnDisplay.classList.add('timer-warning');
-    } else {
-        turnDisplay.classList.remove('timer-warning');
-    }
-}
-
-function triggerAIMove() {
-    if (!gameState.gameActive) return;
-    
-    gameState.currentTurn = 'ai';
-    const turnDisplay = document.getElementById('turnTimer').querySelector('.text-amber-200');
-    turnDisplay.textContent = 'AI Turn';
-    
-    // AI makes a move immediately after timeout
-    const settings = AI_SETTINGS[gameState.aiDifficulty];
-    const delay = Math.random() * 500 + 500; // Small delay for visual effect
-    
-    gameState.aiMoveTimer = setTimeout(() => {
-        const remainingWords = gameState.words.filter(w => 
-            !gameState.foundWords.has(w.baybayin) && !gameState.aiFoundWords.has(w.baybayin)
-        );
-        
-        if (remainingWords.length > 0 && Math.random() < settings.accuracy) {
-            const word = remainingWords[Math.floor(Math.random() * remainingWords.length)];
-            findWordForAI(word.baybayin);
-        }
-        
-        // Switch back to player turn
-        gameState.currentTurn = 'player';
-        turnDisplay.textContent = 'Turn Mo';
-        startTurnTimer();
-    }, delay);
-}
-
-function findWordForAI(baybayinWord) {
-    // Find the word in grid
-    const size = gameState.gridSize;
-    for (let i = 0; i < size; i++) {
-        for (let j = 0; j < size; j++) {
-            for (const dir of GRID_DIRECTIONS) {
-                const chars = splitBaybayin(baybayinWord);
-                let match = true;
-                
-                for (let k = 0; k < chars.length; k++) {
-                    const r = i + dir[0] * k;
-                    const c = j + dir[1] * k;
-                    if (r < 0 || r >= size || c < 0 || c >= size || gameState.grid[r][c].char !== chars[k]) {
-                        match = false;
-                        break;
-                    }
-                }
-                
-                if (match) {
-                    // Highlight AI's selection
-                    gameState.selectedCells = [];
-                    for (let k = 0; k < chars.length; k++) {
-                        gameState.selectedCells.push({
-                            row: i + dir[0] * k,
-                            col: j + dir[1] * k
-                        });
-                    }
-                    markWordFound(baybayinWord, 'ai');
-                    return;
-                }
-            }
-        }
-    }
-}
-
-function checkGameEnd() {
-    if (gameState.foundWords.size + gameState.aiFoundWords.size >= gameState.words.length) {
-        endGame();
-    }
-}
-
-function endGame() {
-    gameState.gameActive = false;
-    clearInterval(gameState.turnTimer);
-    clearTimeout(gameState.aiMoveTimer);
-    
-    const won = gameState.playerScore > gameState.aiScore || !gameState.vsAi;
-    const medal = won ? (gameState.playerScore >= gameState.wordCount * 0.8 ? 'gold' : 'silver') : 'bronze';
-    
-    showVictoryScreen(won, medal);
-}
-
-function showVictoryScreen(won, medal) {
-    const medalColors = {
-        gold: 'text-yellow-400',
-        silver: 'text-gray-400',
-        bronze: 'text-orange-700'
-    };
-    
-    const medalIcons = {
-        gold: 'fa-medal',
-        silver: 'fa-medal',
-        bronze: 'fa-medal'
-    };
-    
-    document.getElementById('medalDisplay').innerHTML = `<i class="fas ${medalIcons[medal]} text-8xl medal ${medalColors[medal]}"></i>`;
-    
-    if (won) {
-        document.getElementById('victoryTitle').textContent = `Tagumpay, ${gameState.playerName}!`;
-        document.getElementById('victoryMessage').textContent = medal === 'gold' 
-            ? 'Napakagaling! Para kang si Lapu-Lapu sa labanan!' 
-            : 'Magaling! Nanalo ka sa laban!';
-        createConfetti();
-    } else {
-        document.getElementById('victoryTitle').textContent = 'Hindi pa ngayon...';
-        document.getElementById('victoryMessage').textContent = 'Natalo ka ng AI, pero pwede mo pang subukan ulit!';
-    }
-    
-    document.getElementById('finalPlayerScore').textContent = gameState.playerScore;
-    document.getElementById('finalAiScore').textContent = gameState.aiScore;
-    
-    if (!gameState.vsAi) {
-        document.getElementById('finalAiScoreContainer').style.display = 'none';
-    } else {
-        document.getElementById('finalAiScoreContainer').style.display = 'block';
-    }
-    
-    document.getElementById('gameScreen').classList.add('hidden');
-    document.getElementById('victoryScreen').classList.remove('hidden');
-}
-
-function createConfetti() {
-    for (let i = 0; i < 50; i++) {
-        setTimeout(() => {
-            const confetti = document.createElement('div');
-            confetti.className = 'confetti';
-            confetti.style.left = Math.random() * 100 + 'vw';
-            confetti.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
-            confetti.style.animationDelay = Math.random() * 0.5 + 's';
-            document.body.appendChild(confetti);
-            setTimeout(() => confetti.remove(), 3000);
-        }, i * 30);
-    }
-}
-
-function resetGame() {
-    if (confirm('Sigurado ka bang gusto mong ulitin ang laban?')) {
-        clearInterval(gameState.turnTimer);
-        clearTimeout(gameState.aiMoveTimer);
-        startGame();
-    }
-}
-
-initGame();
+  init();
 </script>
 <script>(function(){document.addEventListener("click",function(e){var a=e.target.closest("[data-product-id]");if(!a)return;e.preventDefault();var pid=a.getAttribute("data-product-id");if(pid)parent.postMessage({type:"ecto-artifact-link-click",productId:pid},"*")})})();</script>
 </body>
